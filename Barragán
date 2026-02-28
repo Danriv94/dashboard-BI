@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>BARRAGÁN | Dashboard Multi-Sede</title>
+  <style>
+    :root { 
+      --b-dark: #1E222D; 
+      --b-cream: #FDF7ED; 
+      --b-coral: #E57D86; 
+      --b-text: #4A4A4A;
+    }
+
+    body { font-family: 'Segoe UI', sans-serif; background: var(--b-dark); margin: 0; color: var(--b-text); }
+
+    /* --- LOGIN PREMIUM --- */
+    #loginScreen {
+      position: fixed; inset: 0; z-index: 1000;
+      background: linear-gradient(135deg, var(--b-dark) 0%, #2c313c 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: 0.5s;
+    }
+    .login-box {
+      background: rgba(253, 247, 237, 0.05); backdrop-filter: blur(15px);
+      padding: 50px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+      width: 320px; text-align: center;
+    }
+    .login-box h1 { color: white; letter-spacing: 10px; font-weight: 200; margin-bottom: 30px; text-transform: uppercase; }
+    .login-box input { 
+      width: 100%; padding: 12px; margin-bottom: 15px; border: none; 
+      border-radius: 2px; outline: none; box-sizing: border-box; background: rgba(255,255,255,0.9);
+    }
+    .btn-enter {
+      width: 100%; padding: 12px; background: var(--b-coral); color: white;
+      border: none; font-weight: bold; cursor: pointer; text-transform: uppercase;
+      letter-spacing: 2px; transition: 0.3s;
+    }
+
+    /* --- DASHBOARD --- */
+    #dash { display: none; padding: 40px; max-width: 1400px; margin: auto; }
+
+    .top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 30px;
+    }
+    .top-bar h2 { font-weight: 300; letter-spacing: 2px; text-transform: uppercase; font-size: 18px; color: white; }
+    .top-bar h2 span { color: var(--b-coral); font-weight: 700; }
+
+    .selectors { display: flex; gap: 10px; }
+    select { padding: 8px 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; outline: none; background: var(--b-dark); color: white; cursor: pointer; }
+
+    .grid-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    
+    .card { 
+      background: var(--b-cream); border-radius: 4px; padding: 25px;
+      display: flex; flex-direction: column; min-height: 160px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .card-label { font-size: 10px; text-transform: uppercase; color: #718096; font-weight: 800; letter-spacing: 1px; margin-bottom: 15px; }
+    .card-value { font-size: 26px; font-weight: 400; color: var(--b-dark); }
+    .net-value { color: var(--b-coral); font-weight: 700; }
+    .card-sub { font-size: 11px; color: #A0AEC0; margin-top: 5px; font-style: italic; }
+
+    .cost-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+    .cost-item span:last-child { font-weight: 700; color: var(--b-dark); }
+
+    .bar-bg { background: #EDF2F7; height: 8px; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+    .bar-fill { background: #48BB78; height: 100%; width: 0%; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    .table-container { background: white; border-radius: 4px; margin-top: 40px; overflow: hidden; border: 1px solid #E2E8F0; }
+    .table-title { background: #F8FAFC; padding: 15px 20px; font-weight: 800; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; color: var(--b-dark); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px 20px; font-size: 10px; text-transform: uppercase; color: #718096; border-bottom: 2px solid var(--b-coral); }
+    td { padding: 15px 20px; font-size: 13px; border-bottom: 1px solid #EDF2F7; color: var(--b-dark); }
+  </style>
+</head>
+<body>
+
+  <div id="loginScreen">
+    <div class="login-box">
+      <h1>BARRAGÁN</h1>
+      <input type="text" id="u" placeholder="USUARIO">
+      <input type="password" id="p" placeholder="CONTRASEÑA">
+      <button class="btn-enter" onclick="login()">Entrar</button>
+    </div>
+  </div>
+
+  <div id="dash">
+    <div class="top-bar">
+      <h2>BARRAGÁN <span>| Business Intelligence</span></h2>
+      <div class="selectors">
+        <select id="sucSelect" onchange="render()"></select>
+        <select id="mesSelect" onchange="render()">
+            <option value="FEB26">FEBRERO 2026</option>
+            <option value="ENE26">ENERO 2026</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-metrics">
+      <div class="card">
+        <span class="card-label">Sede Seleccionada</span>
+        <div id="show-suc" class="card-value" style="font-size: 20px;">---</div>
+        <span id="show-mes" class="card-sub">---</span>
+      </div>
+
+      <div class="card">
+        <span class="card-label">Venta Neta Real <span style="font-size: 9px; color: var(--b-coral)">[POST-COMM]</span></span>
+        <div id="v-neta" class="card-value net-value">$ 0</div>
+        <span id="v-bruta" class="card-sub">Bruta: $ 0</span>
+      </div>
+
+      <div class="card">
+        <span class="card-label">Estructura Operativa</span>
+        <div class="cost-item"><span>Insumos</span><span id="c-ins"></span></div>
+        <div class="cost-item"><span>Staff</span><span id="c-staff"></span></div>
+        <div class="cost-item"><span>Fijos/Estructura</span><span id="c-est"></span></div>
+      </div>
+
+      <div class="card">
+        <span class="card-label">Objetivo de Venta</span>
+        <div id="v-meta" class="card-value">$ 0</div>
+        <div class="bar-bg"><div id="v-bar" class="bar-fill"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold;">
+          <span id="v-rem" style="color:#718096">REMANENTE: $ 0</span>
+          <span id="v-pct" style="color:#48BB78">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div class="table-title">Histórico Consolidado 1+4</div>
+      <table>
+        <thead>
+          <tr><th>Local</th><th>Período</th><th>Venta Neta</th><th>Gastos Totales</th><th>Margen Final</th></tr>
+        </thead>
+        <tbody id="h-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const DATA = {
+      "PROD": { name: "Producción", com: 0, history: {
+        "FEB26": {v: 48000000, meta: 50000000, ins: 14000000, est: 8000000, staff: 11000000, imp: 1500000},
+        "ENE26": {v: 49500000, meta: 50000000, ins: 14500000, est: 8000000, staff: 11000000, imp: 1500000}
+      }},
+      "CABA": { name: "Caballito", com: 0.22, history: {
+        "FEB26": {v: 19500000, meta: 18000000, ins: 5200000, est: 3000000, staff: 3500000, imp: 900000},
+        "ENE26": {v: 18200000, meta: 18000000, ins: 4900000, est: 3000000, staff: 3500000, imp: 900000}
+      }},
+      "PALE": { name: "Palermo", com: 0.25, history: {
+        "FEB26": {v: 24800000, meta: 22000000, ins: 6500000, est: 3500000, staff: 4200000, imp: 1100000},
+        "ENE26": {v: 23500000, meta: 22000000, ins: 6100000, est: 3500000, staff: 4200000, imp: 1100000}
+      }},
+      "CHAC": { name: "Chacarita", com: 0.20, history: {
+        "FEB26": {v: 18200000, meta: 16000000, ins: 4800000, est: 2800000, staff: 3200000, imp: 800000},
+        "ENE26": {v: 17800000, meta: 16000000, ins: 4600000, est: 2800000, staff: 3200000, imp: 800000}
+      }},
+      "SAAV": { name: "Saavedra", com: 0.22, history: {
+        "FEB26": {v: 17500000, meta: 15500000, ins: 4200000, est: 2500000, staff: 3000000, imp: 750000},
+        "ENE26": {v: 16900000, meta: 15500000, ins: 4000000, est: 2500000, staff: 3000000, imp: 700000}
+      }}
+    };
+
+    const fmt = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+
+    function login() {
+      if(document.getElementById('u').value.toLowerCase()==='admin') {
+        document.getElementById('loginScreen').style.opacity='0';
+        setTimeout(() => {
+            document.getElementById('loginScreen').style.display='none';
+            document.getElementById('dash').style.display='block';
+            init();
+        }, 300);
+      }
+    }
+
+    function init() {
+      const sSel = document.getElementById('sucSelect');
+      sSel.innerHTML = "";
+      Object.keys(DATA).forEach(k => sSel.innerHTML += `<option value="${k}">${DATA[k].name}</option>`);
+      render();
+    }
+
+    function render() {
+      const sucId = document.getElementById('sucSelect').value;
+      const mesId = document.getElementById('mesSelect').value;
+      const local = DATA[sucId];
+      const d = local.history[mesId];
+      const vNeta = d.v * (1 - local.com);
+
+      document.getElementById('show-mes').innerText = mesId === "FEB26" ? "FEBRERO 2026" : "ENERO 2026";
+      document.getElementById('show-suc').innerText = local.name;
+      document.getElementById('v-neta').innerText = fmt(vNeta);
+      document.getElementById('v-bruta').innerText = `Bruta: ${fmt(d.v)}`;
+      document.getElementById('c-ins').innerText = fmt(d.ins);
+      document.getElementById('c-staff').innerText = fmt(d.staff);
+      document.getElementById('c-est').innerText = fmt(d.est);
+      document.getElementById('v-meta').innerText = fmt(d.meta);
+
+      const pct = Math.min((vNeta / d.meta) * 100, 100);
+      document.getElementById('v-bar').style.width = pct + '%';
+      document.getElementById('v-pct').innerText = pct.toFixed(1) + '%';
+      document.getElementById('v-rem').innerText = `REMANENTE: ${fmt(Math.max(d.meta - vNeta, 0))}`;
+
+      updateHistory();
+    }
+
+    function updateHistory() {
+      const hBody = document.getElementById('h-body');
+      hBody.innerHTML = "";
+      Object.keys(DATA).forEach(sKey => {
+        const l = DATA[sKey];
+        Object.keys(l.history).forEach(mKey => {
+            const hist = l.history[mKey];
+            const vn = hist.v * (1 - l.com);
+            const gas = hist.ins + hist.est + hist.staff + hist.imp;
+            const marg = ((vn - gas) / vn * 100).toFixed(1);
+            hBody.innerHTML += `<tr><td>${l.name}</td><td>${mKey}</td><td style="color:var(--b-coral); font-weight:bold">${fmt(vn)}</td><td>${fmt(gas)}</td><td style="font-weight:bold; color:#2F855A">${marg}%</td></tr>`;
+        });
+      });
+    }
+  </script>
+</body>
+</html>
